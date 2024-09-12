@@ -1,0 +1,198 @@
+workflows:
+
+  android-workflow:
+    name: Android Workflow
+    max_build_duration: 120
+    triggering:
+      events:
+        - pull_request
+      branch_patterns:
+        - pattern: 'main'
+          include: true
+          source: false
+      cancel_previous_builds: true
+    environment:
+      # android_signing:
+      #   - keystore_reference
+      groups:
+        - firebase_credentials
+      vars:
+        PACKAGE_NAME: "com.example.calendar_example"
+        GOOGLE_PLAY_TRACK: alpha
+      flutter: stable
+    scripts:
+      - name: Setup env file
+        script: |
+          # echo "androidPackageName=$ANDROID_PACKAGE_NAME" > "configs/development/env.properties"
+          # echo "appName=$APP_NAME" >> "configs/development/env.properties"
+          # echo "iosBundleId=$IOS_BUNDLE_ID" >> "configs/development/env.properties"
+      - name: Set up local.properties
+        script: |
+          echo "flutter.sdk=$HOME/programs/flutter" > "$CM_BUILD_DIR/android/local.properties"
+      - name: Get Flutter packages
+        script: |
+          flutter packages pub get
+      # - name: Flutter analyze
+      #   script: |
+      #     flutter analyze
+      # - name: Flutter unit tests
+      #   script: |
+      #     flutter test
+      #   ignore_failure: true
+      - name: Build APK with Flutter
+        script: |
+          LATEST_BUILD_VERSION=$(firebase-app-distribution get-latest-build-version -p 25843497151 -a 1:25843497151:android:4fb30f82b183ab25a4ae0a)
+          # BUILD_NUMBER=$(($(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks="$GOOGLE_PLAY_TRACK") + 1))      
+          BUILD_NUMBER = LATEST_BUILD_VERSION + 1
+          flutter build apk --release \
+            --build-name=1.0.$BUILD_NUMBER \
+            --build-number=$BUILD_NUMBER
+    artifacts:
+      - build/**/outputs/**/*.apk
+      - build/**/outputs/**/mapping.txt
+      - flutter_drive.log
+    publishing:
+      email:
+        recipients:
+          - thuan.nguyen4@sotatek.com
+          - user_2@example.com
+        notify:
+          success: true
+          failure: false
+      firebase:
+        # use this line to authenticate via service account
+        firebase_service_account: $FIREBASE_SERVICE_ACCOUNT
+
+        # or this line to authenticate via token:
+        # firebase_token: $FIREBASE_TOKEN
+
+        android:
+          # Add your Android app id retrieved from Firebase console
+          app_id: 1:25843497151:android:4fb30f82b183ab25a4ae0a
+
+          # Add one or more groups that you wish to distribute your Android application to.
+          # You can create groups in the Firebase console
+          groups:
+            - Tesssss
+          artifact_type: 'apk'
+
+          # google_play:
+          #   credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+          #   track: $GOOGLE_PLAY_TRACK
+          #   submit_as_draft: true
+
+          # ios-workflow:
+          # name: iOS Workflow
+          # instance_type: mac_mini_m1
+          # max_build_duration: 120
+          # # integrations:
+          # #   app_store_connect: codemagic
+          # triggering:
+          #   events:
+          #     # - push
+          #     - pull_request
+          #   branch_patterns:
+          #     - pattern: 'main'
+          #       include: true
+          #       source: false
+          #   cancel_previous_builds: true
+          # environment:
+          #   ios_signing:
+          #     distribution_type: development
+          #     bundle_identifier: com.mint-town.app
+          #   # vars:
+          #   #   APP_ID: 1111111111 # <-- Put your APP ID here
+          #   flutter: stable
+          #   xcode: latest # <-- set to specific version e.g. 14.3, 15.0 to avoid unexpected updates.
+          #   cocoapods: default
+          #   # cache:
+          #   #   paths:
+          #   #     - $HOME/.pub-cache
+          #   groups:
+          #     - firebase_credentials
+
+          # scripts:
+          #   # - name: Install dependencies
+          #   #   script: |
+          #   #     flutter pub get
+          #   #     pod install --project-directory=ios
+          #   # - name: Set up keychain
+          #   #   script: |
+          #   #     # Create a temporary keychain
+          #   #     security create-keychain -p "" build.keychain
+          #   #     security import certs/apple.cer -k ~/Library/Keychains/build.keychain -T /usr/bin/codesign
+          #   #     security import certs/distribution.p12 -k ~/Library/Keychains/build.keychain -P 1212 -T /usr/bin/codesign
+          #   #     security list-keychains -s ~/Library/Keychains/build.keychain
+          #   #     security default-keychain -s ~/Library/Keychains/build.keychain
+          #   #     security unlock-keychain -p "" ~/Library/Keychains/build.keychain
+          #   #     security set-keychain-settings -t 3600 -l ~/Library/Keychains/build.keychain
+          #   # - name: Build IPA
+          #   #   script: |
+          #   #     # LATEST_BUILD_VERSION=$(firebase-app-distribution get-latest-build-version -p 25843497151 -a 1:25843497151:ios-b9191c635399f418a4ae0a)
+          #   #     # BUILD_NUMBER = LATEST_BUILD_VERSION + 1
+          #   #     flutter build ipa --release \
+          #   #     --build-name=1.0.0 \
+          #   #     --build-number=1 \
+          #   #     # --export-options-plist=ios/exportOptions.plist
+          #   # - name: Build iOS
+          #   #   script: |
+          #   #     flutter build ios --release --no-codesign
+          #   # - name: Create IPA
+          #   #   script: |
+          #   #     flutter build ipa --release \
+          #   #     --build-name=1.0.0 \
+          #   #     --build-number=1 \
+          #   #     # --build-number=$(($(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID") + 1)) \
+          #   #     --export-options-plist=/Users/builder/export_options.plist
+          #   #     xcodebuild -exportArchive -archivePath build/ios/archive/Runner.xcarchive -exportOptionsPlist ios/exportOptions.plist -exportPath build/ios/ipa
+          #     # artifact_paths:
+          #     #   - build/ios/ipa/*.ipa
+          #   # - name: Set up provisioning profiles settings on Xcode project
+          #   #   script: |
+          #   #     xcode-project use-profiles
+
+          #   # - name: Build iOS release
+          #   #   script: |
+          #   #     xcode-project build-ipa --archive-flags="-destination 'generic/platform=iOS'" \
+          #   #           --workspace "$CM_BUILD_DIR/ios/$XCODE_WORKSPACE" \
+          #   #           --scheme "$XCODE_SCHEME"
+          #   - name: Setup env file
+          #     script: |
+          #       # echo "androidPackageName=$ANDROID_PACKAGE_NAME" > "configs/development/env.properties"
+          #       # echo "appName=$APP_NAME" >> "configs/development/env.properties"
+          #       # echo "iosBundleId=$IOS_BUNDLE_ID" >> "configs/development/env.properties"
+          #   - name: Set up code signing settings on Xcode project
+          #     script: |
+          #       xcode-project use-profiles
+          #   - name: Get Flutter packages
+          #     script: |
+          #       flutter packages pub get
+          #   - name: Install pods
+          #     script: |
+          #       find . -name "Podfile" -execdir pod install \;
+          #   - name: Flutter build ipa
+          #     script: |
+          #       LATEST_BUILD_VERSION=$(firebase-app-distribution get-latest-build-version -p 25843497151 -a 1:25843497151:ios:b9191c635399f418a4ae0a)
+          #       BUILD_NUMBER = LATEST_BUILD_VERSION + 1
+          #       flutter build ipa --release \
+          #         --build-name=1.0.$BUILD_NUMBER \
+          #         --export-options-plist=/Users/builder/export_options.plist
+          # artifacts:
+          #   - build/ios/ipa/*.ipa
+          #   - /tmp/xcodebuild_logs/*.log
+          #   - flutter_drive.log
+
+          # publishing:
+          #   firebase:
+          #   # # use this line to authenticate via service account
+          #     firebase_service_account: $FIREBASE_SERVICE_ACCOUNT
+
+      #   scripts:
+      #     - name: Upload IPA to Firebase App Distribution
+      #       script: |
+      #         echo $FIREBASE_SERVICE_ACCOUNT > $HOME/credentials.json
+      #         export GOOGLE_APPLICATION_CREDENTIALS=$HOME/credentials.json
+      #         echo "Uploading IPA to Firebase App Distribution"
+      #         firebase appdistribution:distribute build/ios/ipa/*.ipa \
+      #           --app 1:25843497151:ios:b9191c635399f418a4ae0a \
+      #           --groups Tesssss
