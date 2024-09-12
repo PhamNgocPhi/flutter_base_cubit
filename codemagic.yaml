@@ -17,18 +17,18 @@ workflows:
       groups:
         - firebase_credentials
       vars:
-        PACKAGE_NAME: "com.example.calendar_example"
+        PACKAGE_NAME: "com.jig.racing.jig_racing"
         GOOGLE_PLAY_TRACK: alpha
       flutter: stable
     scripts:
-      - name: Setup env file
-        script: |
-          # echo "androidPackageName=$ANDROID_PACKAGE_NAME" > "configs/development/env.properties"
-          # echo "appName=$APP_NAME" >> "configs/development/env.properties"
-          # echo "iosBundleId=$IOS_BUNDLE_ID" >> "configs/development/env.properties"
-      - name: Set up local.properties
-        script: |
-          echo "flutter.sdk=$HOME/programs/flutter" > "$CM_BUILD_DIR/android/local.properties"
+#      - name: Setup env file
+#        script: |
+#          # echo "androidPackageName=$ANDROID_PACKAGE_NAME" > "configs/development/env.properties"
+#          # echo "appName=$APP_NAME" >> "configs/development/env.properties"
+#          # echo "iosBundleId=$IOS_BUNDLE_ID" >> "configs/development/env.properties"
+#      - name: Set up local.properties
+#        script: |
+#          echo "flutter.sdk=$HOME/programs/flutter" > "$CM_BUILD_DIR/android/local.properties"
       - name: Get Flutter packages
         script: |
           flutter packages pub get
