@@ -32,10 +32,7 @@ workflows:
       - name: Get Flutter packages
         script: |
           flutter packages pub get
-          cd basetest
-          git pull
-          flutter packages pub get
-          cd ..
+          git submodule foreach "(git pull)&"
       # - name: Flutter analyze
       #   script: |
       #     flutter analyze
