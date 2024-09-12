@@ -32,7 +32,10 @@ workflows:
       - name: Get Flutter packages
         script: |
           flutter packages pub get
-
+          cd basetest
+          git pull
+          flutter packages pub get
+          cd ..
       # - name: Flutter analyze
       #   script: |
       #     flutter analyze
@@ -55,7 +58,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - thuan.nguyen4@sotatek.com
+          - phi.pham@sotatek.com
           - user_2@example.com
         notify:
           success: true

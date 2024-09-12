@@ -1,0 +1,3 @@
+[submodule "basetest"]
+	path = basetest
+	url = https://github.com/PhamNgocPhi/flutter_base.git
